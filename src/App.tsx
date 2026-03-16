@@ -34,8 +34,8 @@ function App() {
     if (selectedRoles.length === 0) return
     const results = runSimulation(selectedRoles, rounds, initialEnergy)
     setHistory(results)
-    setCurrentRound(0)
-    setPlayers([])
+    setCurrentRound(1)  // 从第1轮开始
+    setPlayers(results[0]?.players || [])  // 直接显示第1轮数据
     setShowSim(true)
     setIsPlaying(false) // 默认暂停
   }
@@ -43,7 +43,7 @@ function App() {
   // 单步运行
   const step = () => {
     if (currentRound < history.length) {
-      setPlayers(history[currentRound].players)
+      setPlayers(history[currentRound - 1].players)
       setCurrentRound(currentRound + 1)
     }
   }
@@ -63,10 +63,10 @@ function App() {
 
   // 自动播放
   useEffect(() => {
-    if (isPlaying && currentRound < history.length) {
+    if (isPlaying && currentRound <= history.length) {
       timerRef.current = window.setInterval(() => {
-        if (currentRound < history.length) {
-          setPlayers(history[currentRound].players)
+        if (currentRound <= history.length) {
+          setPlayers(history[currentRound - 1].players)
           setCurrentRound(currentRound + 1)
         } else {
           setIsPlaying(false)
@@ -103,9 +103,8 @@ function App() {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
-    setCurrentRound(0)
-    setPlayers([])
-    startSimulation()
+    setCurrentRound(1)
+    setPlayers(history[0]?.players || [])
   }
 
   // 获取当前排名（按总分排序）
@@ -187,10 +186,10 @@ function App() {
               </div>
               
               <div className="sim-controls">
-                <button className="ctrl-btn" onClick={step} disabled={currentRound >= rounds || isPlaying}>
+                <button className="ctrl-btn" onClick={step} disabled={currentRound > rounds || isPlaying}>
                   ⏭️ 单步
                 </button>
-                <button className="ctrl-btn play-btn" onClick={togglePlay} disabled={currentRound >= rounds}>
+                <button className="ctrl-btn play-btn" onClick={togglePlay} disabled={currentRound > rounds}>
                   {isPlaying ? '⏸️ 暂停' : '▶️ 播放'}
                 </button>
                 <button className="ctrl-btn" onClick={restart}>
