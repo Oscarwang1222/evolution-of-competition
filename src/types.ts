@@ -22,6 +22,7 @@ export interface Player {
 export interface RoundResult {
   round: number
   players: Player[]
+  energy: number  // 当前精力上限
 }
 
 // 角色配置（用于显示）

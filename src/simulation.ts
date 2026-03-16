@@ -172,6 +172,7 @@ export function runSimulation(
     results.push({
       round: r,
       players: [...newPlayers],
+      energy: currentEnergy,
     })
   }
 

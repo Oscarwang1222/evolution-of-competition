@@ -177,7 +177,7 @@ function App() {
           <section className="sim-section">
             <div className="sim-header">
               <div className="sim-info">
-                <span className="round-indicator">第 {currentRound} / {rounds} 轮</span>
+                <span className="round-indicator">第 {currentRound} / {rounds} 轮 | 精力上限: {history[currentRound-1]?.energy || initialEnergy}</span>
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
@@ -215,14 +215,14 @@ function App() {
                       >
                         <span className="rank">#{i + 1}</span>
                         <span className="name">{ROLE_CONFIGS[player.role].name}</span>
-                        <span className="score" title="当轮实际分数（包含创造力加成）">
-                          {player.scorePerRound.toFixed(2)} 分/轮
+                        <span className="score" title="累计总分">
+                          总分: {player.score.toFixed(2)}
                         </span>
                         <span className="total-score">
-                          累计: {player.score.toFixed(2)}
+                          分数: {player.scorePerRound.toFixed(2)}/轮
                         </span>
-                        <span className="creativity" title="当轮获得创造力 + 累积创造力">
-                          创造力: +{player.creativityPerRound}/轮, 共 {player.creativity}
+                        <span className="creativity" title="累计创造力">
+                          创造力: {player.creativity.toFixed(0)} | +{player.creativityPerRound}/轮
                         </span>
                       </div>
                     ))}
