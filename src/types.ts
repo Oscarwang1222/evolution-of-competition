@@ -13,10 +13,11 @@ export type RoleType =
 export interface Player {
   id: string
   role: RoleType
-  score: number         // 累积总分
-  creativity: number   // 累积创造力
-  scorePerRound: number // 当轮实际分数（包含创造力加成）
-  creativityPerRound: number // 当轮获得的创造力
+  totalScore: number      // 总分 = 基础分数 × 1.05^创新能力（累计）
+  examAbility: number    // 基础应试能力（累计）
+  creativity: number     // 创新能力（累计）
+  examAbilityPerRound: number  // 当轮增加的应试能力
+  creativityPerRound: number   // 当轮增加的创新能力
 }
 
 export interface RoundResult {

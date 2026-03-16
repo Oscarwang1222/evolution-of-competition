@@ -108,8 +108,11 @@ function App() {
     startSimulation()
   }
 
-  // 获取当前排名
-  const ranking = [...players].sort((a, b) => b.score - a.score)
+  // 获取当前排名（按总分排序）
+  const ranking = [...players].sort((a, b) => b.totalScore - a.totalScore)
+
+  // 获取当前精力上限
+  const currentEnergy = history[currentRound - 1]?.energy || initialEnergy
 
   return (
     <div className="app">
@@ -177,7 +180,7 @@ function App() {
           <section className="sim-section">
             <div className="sim-header">
               <div className="sim-info">
-                <span className="round-indicator">第 {currentRound} / {rounds} 轮 | 精力上限: {history[currentRound-1]?.energy || initialEnergy}</span>
+                <span className="round-indicator">第 {currentRound} / {rounds} 轮 | 精力上限: {currentEnergy}</span>
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
@@ -215,14 +218,14 @@ function App() {
                       >
                         <span className="rank">#{i + 1}</span>
                         <span className="name">{ROLE_CONFIGS[player.role].name}</span>
-                        <span className="score" title="累计总分">
-                          总分: {player.score.toFixed(2)}
+                        <span className="score" title="总分 = 应试能力 × 1.05^创新能力">
+                          <strong>总分: {player.totalScore.toFixed(2)}</strong>
                         </span>
                         <span className="total-score">
-                          分数: {player.scorePerRound.toFixed(2)}/轮
+                          应试能力: {player.examAbility.toFixed(2)} | 创新能力: {player.creativity.toFixed(0)}
                         </span>
-                        <span className="creativity" title="累计创造力">
-                          创造力: {player.creativity.toFixed(0)} | +{player.creativityPerRound}/轮
+                        <span className="creativity">
+                          <small>+{player.examAbilityPerRound.toFixed(1)}/+{player.creativityPerRound.toFixed(1)}/轮</small>
                         </span>
                       </div>
                     ))}
@@ -242,17 +245,19 @@ function App() {
                             {ROLE_CONFIGS[player.role].name}
                           </span>
                           <div className="line-values">
-                            {history.slice(0, currentRound).map((r, ri) => {
-                              const p = r.players.find(pl => pl.id === player.id)
+                            {Array.from({ length: rounds }, (_, ri) => {
+                              const r = history[ri]
+                              const p = r?.players.find(pl => pl.id === player.id)
+                              const isPast = ri < currentRound
                               return (
                                 <div
                                   key={ri}
                                   className="dot"
                                   style={{
                                     backgroundColor: ROLE_CONFIGS[player.role].color,
-                                    opacity: 0.3 + (ri / Math.max(1, history.length - 1)) * 0.7
+                                    opacity: isPast ? 0.3 + (ri / Math.max(1, rounds - 1)) * 0.7 : 0.1
                                   }}
-                                  title={`第 ${ri + 1} 轮: ${p?.score.toFixed(2) || 0}`}
+                                  title={`第 ${ri + 1} 轮: 总分 ${p?.totalScore.toFixed(2) || 0}`}
                                 />
                               )
                             })}
@@ -262,15 +267,13 @@ function App() {
                     </div>
                   </div>
                   <div className="x-axis">
-                    {currentRound <= 20 ? (
-                      // 轮数少时每个轮都显示
-                      Array.from({ length: currentRound }, (_, i) => (
+                    {rounds <= 20 ? (
+                      Array.from({ length: rounds }, (_, i) => (
                         <span key={i}>{i + 1}</span>
                       ))
                     ) : (
-                      // 轮数多时均匀显示约10个刻度
                       Array.from({ length: 10 }, (_, i) => {
-                        const idx = Math.floor((i * currentRound) / 10)
+                        const idx = Math.floor((i * rounds) / 9)
                         return <span key={i}>{idx + 1}</span>
                       })
                     )}

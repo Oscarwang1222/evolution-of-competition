@@ -58,9 +58,10 @@ function createPlayer(id: string, role: RoleType): Player {
   return {
     id,
     role,
-    score: 0,
+    totalScore: 0,
+    examAbility: 0,
     creativity: 0,
-    scorePerRound: 0,
+    examAbilityPerRound: 0,
     creativityPerRound: 0,
   }
 }
@@ -88,24 +89,26 @@ function runRound(players: Player[], n: number): Player[] {
       allocation = getAllocation(p.role, n)
     }
 
-    // 基础分数 = 用于分数的精力
-    const baseScore = allocation.score
+    // 基础分数 = 用于分数的精力（应试能力）
+    const examAbility = allocation.score
 
-    // 实际分数 = 基础分数 × 1.05 ^ 总创造力（上一轮的创造力）
+    // 实际分数 = 基础分数 × 1.05 ^ 总创造力（创新能力）
     const multiplier = Math.pow(CREATIVITY_MULTIPLIER, p.creativity)
-    const actualScore = baseScore * multiplier
+    const actualScore = examAbility * multiplier
 
     // 新的创造力 = 旧的创造力 + 当轮获得的创造力
     const newCreativity = p.creativity + allocation.creativity
 
     return {
       ...p,
-      scorePerRound: actualScore,
-      // 累积总分 = 旧分数 + 当轮实际分数
-      score: p.score + actualScore,
-      // 累积创造力 = 旧创造力 + 当轮获得的创造力
+      examAbilityPerRound: examAbility,
+      // 累计应试能力 = 旧 + 当轮
+      examAbility: p.examAbility + examAbility,
+      // 总分 = 旧总分 + 当轮实际分数
+      totalScore: p.totalScore + actualScore,
+      // 累计创新能力 = 旧 + 当轮
       creativity: newCreativity,
-      // 当轮获得的创造力（用于显示）
+      // 当轮获得的创新能力
       creativityPerRound: allocation.creativity,
     }
   })
