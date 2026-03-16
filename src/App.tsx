@@ -111,9 +111,6 @@ function App() {
   // 获取当前排名（按总分排序）
   const ranking = [...players].sort((a, b) => b.totalScore - a.totalScore)
 
-  // 获取当前精力上限
-  const currentEnergy = history[currentRound - 1]?.energy || initialEnergy
-
   return (
     <div className="app">
       <header>
@@ -180,7 +177,7 @@ function App() {
           <section className="sim-section">
             <div className="sim-header">
               <div className="sim-info">
-                <span className="round-indicator">第 {currentRound} / {rounds} 轮 | 精力上限: {currentEnergy}</span>
+                <span className="round-indicator">第 {currentRound} / {rounds} 轮</span>
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
@@ -225,7 +222,7 @@ function App() {
                           应试能力: {player.examAbility.toFixed(2)} | 创新能力: {player.creativity.toFixed(0)}
                         </span>
                         <span className="creativity">
-                          <small>+{player.examAbilityPerRound.toFixed(1)}/+{player.creativityPerRound.toFixed(1)}/轮</small>
+                          <small>+{player.examAbilityPerRound.toFixed(1)}/+{player.creativityPerRound.toFixed(1)}/轮 | 精力:{player.energy}</small>
                         </span>
                       </div>
                     ))}

@@ -54,7 +54,7 @@ function getFollowAllocation(
 }
 
 // 创建玩家
-function createPlayer(id: string, role: RoleType): Player {
+function createPlayer(id: string, role: RoleType, energy: number): Player {
   return {
     id,
     role,
@@ -63,6 +63,7 @@ function createPlayer(id: string, role: RoleType): Player {
     creativity: 0,
     examAbilityPerRound: 0,
     creativityPerRound: 0,
+    energy,
   }
 }
 
@@ -110,6 +111,8 @@ function runRound(players: Player[], n: number): Player[] {
       creativity: newCreativity,
       // 当轮获得的创新能力
       creativityPerRound: allocation.creativity,
+      // 当前精力上限
+      energy: n,
     }
   })
 }
@@ -150,7 +153,7 @@ export function runSimulation(
 
   // 初始化玩家
   const players: Player[] = roles.map((role, i) =>
-    createPlayer(`player-${i}`, role)
+    createPlayer(`player-${i}`, role, initialEnergy)
   )
 
   const results: RoundResult[] = []

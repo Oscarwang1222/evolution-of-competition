@@ -278,22 +278,27 @@ h3 {
 
 .line-values {
   display: flex;
-  gap: 2px;
   flex: 1;
+  gap: 1px;
 }
 
 .dot {
-  width: 8px;
+  flex: 1;
   height: 20px;
   border-radius: 2px;
   cursor: pointer;
+  min-width: 2px;
 }
 
 .x-axis {
   display: flex;
-  justify-content: space-between;
   padding-left: 68px;
   font-size: 0.75rem;
   color: #999;
   min-width: 600px;
+}
+
+.x-axis span {
+  flex: 1;
+  text-align: center;
 }

@@ -18,6 +18,7 @@ export interface Player {
   creativity: number     // 创新能力（累计）
   examAbilityPerRound: number  // 当轮增加的应试能力
   creativityPerRound: number   // 当轮增加的创新能力
+  energy: number        // 当前精力上限
 }
 
 export interface RoundResult {
