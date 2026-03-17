@@ -64,16 +64,31 @@ function createPlayer(id: string, role: RoleType, energy: number): Player {
     examAbilityPerRound: 0,
     creativityPerRound: 0,
     energy,
+    consecutiveBelow2: 0,  // 连续剩余精力<2的轮数
   }
 }
 
+// 计算某玩家的剩余精力
+function getRemainingEnergy(p: Player, avgScoreEnergy: number): number {
+  const n = p.energy
+  let allocation: { score: number; creativity: number }
+  
+  if (p.role === 'follow' || p.role === 'super-follow') {
+    allocation = getFollowAllocation(p.role, n, avgScoreEnergy)
+  } else {
+    allocation = getAllocation(p.role, n)
+  }
+  
+  return n - (allocation.score + allocation.creativity)
+}
+
 // 运行一轮模拟
-function runRound(players: Player[], n: number): Player[] {
-  // 第一步：计算除了跟风和超级跟风之外的人的平均"用于分数的精力"
+function runRound(players: Player[]): Player[] {
+  // 第一步：计算除了跟风和超级跟风之外的人的平均"用于分数的精力"（基于各自精力）
   const nonFollowPlayers = players.filter(p => p.role !== 'follow' && p.role !== 'super-follow')
   let totalScoreEnergy = 0
   for (const p of nonFollowPlayers) {
-    const alloc = getAllocation(p.role, n)
+    const alloc = getAllocation(p.role, p.energy)
     totalScoreEnergy += alloc.score
   }
   const avgScoreEnergy = nonFollowPlayers.length > 0
@@ -85,9 +100,9 @@ function runRound(players: Player[], n: number): Player[] {
     let allocation: { score: number; creativity: number }
 
     if (p.role === 'follow' || p.role === 'super-follow') {
-      allocation = getFollowAllocation(p.role, n, avgScoreEnergy)
+      allocation = getFollowAllocation(p.role, p.energy, avgScoreEnergy)
     } else {
-      allocation = getAllocation(p.role, n)
+      allocation = getAllocation(p.role, p.energy)
     }
 
     // 基础分数 = 用于分数的精力（应试能力）
@@ -100,6 +115,24 @@ function runRound(players: Player[], n: number): Player[] {
     // 新的创造力 = 旧的创造力 + 当轮获得的创造力
     const newCreativity = p.creativity + allocation.creativity
 
+    // 计算剩余精力
+    const remainingEnergy = p.energy - (allocation.score + allocation.creativity)
+
+    // 更新连续低于2的计数
+    let newConsecutiveBelow2 = p.consecutiveBelow2
+    if (remainingEnergy < 2) {
+      newConsecutiveBelow2++
+    } else {
+      newConsecutiveBelow2 = 0
+    }
+
+    // 检查是否需要精力衰减（连续5轮剩余精力 < 2）
+    let newEnergy = p.energy
+    if (newConsecutiveBelow2 >= 5) {
+      newEnergy = Math.max(1, p.energy - 1)
+      newConsecutiveBelow2 = 0
+    }
+
     return {
       ...p,
       examAbilityPerRound: examAbility,
@@ -111,40 +144,12 @@ function runRound(players: Player[], n: number): Player[] {
       creativity: newCreativity,
       // 当轮获得的创新能力
       creativityPerRound: allocation.creativity,
-      // 当前精力上限
-      energy: n,
+      // 更新精力上限
+      energy: newEnergy,
+      // 更新连续计数
+      consecutiveBelow2: newConsecutiveBelow2,
     }
   })
-}
-
-// 检查本轮所有人的剩余精力是否都 < 2
-function isAllRemainingEnergyBelow2(players: Player[], n: number): boolean {
-  for (const p of players) {
-    let scoreEnergy: number
-    let creativityEnergy: number
-    if (p.role === 'follow' || p.role === 'super-follow') {
-      const nonFollowPlayers = players.filter(pp => pp.role !== 'follow' && pp.role !== 'super-follow')
-      let total = 0
-      for (const pp of nonFollowPlayers) {
-        const alloc = getAllocation(pp.role, n)
-        total += alloc.score
-      }
-      const avg = nonFollowPlayers.length > 0 ? total / nonFollowPlayers.length : 0
-      const alloc = getFollowAllocation(p.role, n, avg)
-      scoreEnergy = alloc.score
-      creativityEnergy = alloc.creativity
-    } else {
-      const alloc = getAllocation(p.role, n)
-      scoreEnergy = alloc.score
-      creativityEnergy = alloc.creativity
-    }
-
-    const remainingEnergy = n - (scoreEnergy + creativityEnergy)
-    if (remainingEnergy >= 2) {
-      return false
-    }
-  }
-  return true
 }
 
 // 主模拟函数
@@ -161,28 +166,15 @@ export function runSimulation(
   )
 
   const results: RoundResult[] = []
-  let consecutiveBelow2 = 0
-  let currentEnergy = initialEnergy
 
   for (let r = 1; r <= rounds; r++) {
     // 运行一轮
-    players = runRound(players, currentEnergy)
-
-    // 检查是否需要降低上限
-    if (isAllRemainingEnergyBelow2(players, currentEnergy)) {
-      consecutiveBelow2++
-      if (consecutiveBelow2 >= 5) {
-        currentEnergy = Math.max(1, currentEnergy - 1)
-        consecutiveBelow2 = 0
-      }
-    } else {
-      consecutiveBelow2 = 0
-    }
+    players = runRound(players)
 
     results.push({
       round: r,
       players: players.map(p => ({ ...p })),
-      energy: currentEnergy,
+      energy: players[0]?.energy || initialEnergy,  // 兼容旧代码
     })
   }
 
