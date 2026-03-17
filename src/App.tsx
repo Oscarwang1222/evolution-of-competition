@@ -230,7 +230,7 @@ function App() {
                           应试能力: {player.examAbility.toFixed(2)} | 创新能力: {player.creativity.toFixed(0)}
                         </span>
                         <span className="creativity">
-                          <small>+{player.examAbilityPerRound.toFixed(1)}/+{player.creativityPerRound.toFixed(1)}/轮 | 精力:{player.energy}</small>
+                          <small>+{player.examAbilityPerRound.toFixed(1)}/+{player.creativityPerRound.toFixed(1)}/轮 | 精力:{currentEnergy}</small>
                         </span>
                       </div>
                     ))}
