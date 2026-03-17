@@ -9,7 +9,7 @@ function getAllocation(role: RoleType, n: number): { score: number; creativity: 
     case 'juanwang':
       return { score: n, creativity: 0 }
     case 'normal':
-      return { score: Math.max(0, n - 2), creativity: 2 }
+      return { score: Math.max(0, n - 2), creativity: 0 }
     case 'chuang-ge':
       return { score: 1, creativity: Math.max(0, n - 3) }
     case 'top-chuang':
