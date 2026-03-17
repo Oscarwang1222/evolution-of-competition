@@ -117,10 +117,11 @@ function runRound(players: Player[], n: number): Player[] {
   })
 }
 
-// 检查本轮所有玩家的分数精力是否都 < 2
-function isAllScoreEnergyBelow2(players: Player[], n: number): boolean {
+// 检查本轮所有人的剩余精力是否都 < 2
+function isAllRemainingEnergyBelow2(players: Player[], n: number): boolean {
   for (const p of players) {
     let scoreEnergy: number
+    let creativityEnergy: number
     if (p.role === 'follow' || p.role === 'super-follow') {
       const nonFollowPlayers = players.filter(pp => pp.role !== 'follow' && pp.role !== 'super-follow')
       let total = 0
@@ -131,12 +132,15 @@ function isAllScoreEnergyBelow2(players: Player[], n: number): boolean {
       const avg = nonFollowPlayers.length > 0 ? total / nonFollowPlayers.length : 0
       const alloc = getFollowAllocation(p.role, n, avg)
       scoreEnergy = alloc.score
+      creativityEnergy = alloc.creativity
     } else {
       const alloc = getAllocation(p.role, n)
       scoreEnergy = alloc.score
+      creativityEnergy = alloc.creativity
     }
 
-    if (scoreEnergy >= 2) {
+    const remainingEnergy = n - (scoreEnergy + creativityEnergy)
+    if (remainingEnergy >= 2) {
       return false
     }
   }
@@ -165,7 +169,7 @@ export function runSimulation(
     players = runRound(players, currentEnergy)
 
     // 检查是否需要降低上限
-    if (isAllScoreEnergyBelow2(players, currentEnergy)) {
+    if (isAllRemainingEnergyBelow2(players, currentEnergy)) {
       consecutiveBelow2++
       if (consecutiveBelow2 >= 5) {
         currentEnergy = Math.max(1, currentEnergy - 1)
