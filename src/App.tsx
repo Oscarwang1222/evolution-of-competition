@@ -43,7 +43,7 @@ function App() {
   // 单步运行
   const step = () => {
     if (currentRound < history.length) {
-      setPlayers(history[currentRound - 1].players)
+      setPlayers(history[currentRound].players)
       setCurrentRound(currentRound + 1)
     }
   }
@@ -65,16 +65,19 @@ function App() {
   useEffect(() => {
     if (isPlaying && currentRound <= history.length) {
       timerRef.current = window.setInterval(() => {
-        if (currentRound <= history.length) {
-          setPlayers(history[currentRound - 1].players)
-          setCurrentRound(currentRound + 1)
-        } else {
-          setIsPlaying(false)
-          if (timerRef.current) {
-            clearInterval(timerRef.current)
-            timerRef.current = null
+        setCurrentRound(prev => {
+          if (prev <= history.length) {
+            setPlayers(history[prev - 1].players)
+            return prev + 1
+          } else {
+            setIsPlaying(false)
+            if (timerRef.current) {
+              clearInterval(timerRef.current)
+              timerRef.current = null
+            }
+            return prev
           }
-        }
+        })
       }, 500) // 每500ms一步
     }
     return () => {
