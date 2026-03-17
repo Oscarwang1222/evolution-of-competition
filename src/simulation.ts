@@ -49,7 +49,7 @@ function getFollowAllocation(
     }
   } else {
     // 超级跟风：平均值用于分数，剩余全部创造力
-    return { score: otherScoreEnergy, creativity: n - otherScoreEnergy }
+    return { score: otherScoreEnergy, creativity: Math.max(0, n - otherScoreEnergy) }
   }
 }
 
@@ -189,13 +189,13 @@ export function runSimulation(
 export function getFinalRanking(results: RoundResult[]): Player[] {
   if (results.length === 0) return []
   const finalRound = results[results.length - 1]
-  return [...finalRound.players].sort((a, b) => b.score - a.score)
+  return [...finalRound.players].sort((a, b) => b.totalScore - a.totalScore)
 }
 
 // 获取每轮的分数变化（用于图表）
 export function getScoreHistory(results: RoundResult[]): { round: number; scores: Record<string, number> }[] {
   return results.map(r => ({
     round: r.round,
-    scores: Object.fromEntries(r.players.map(p => [p.id, p.score]))
+    scores: Object.fromEntries(r.players.map(p => [p.id, p.totalScore]))
   }))
 }
