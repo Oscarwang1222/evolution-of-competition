@@ -108,12 +108,14 @@ function runRound(players: Player[]): Player[] {
     // 基础分数 = 用于分数的精力（应试能力）
     const examAbility = allocation.score
 
-    // 实际分数 = 基础分数 × 1.05 ^ 总创造力（创新能力）
-    const multiplier = Math.pow(CREATIVITY_MULTIPLIER, p.creativity)
-    const actualScore = examAbility * multiplier
-
-    // 新的创造力 = 旧的创造力 + 当轮获得的创造力
+    // 累计应试能力 = 旧 + 当轮
+    const newExamAbility = p.examAbility + examAbility
+    // 累计创新能力 = 旧 + 当轮
     const newCreativity = p.creativity + allocation.creativity
+    
+    // 总分 = 累计应试能力 × 1.05 ^ 累计创新能力
+    const multiplier = Math.pow(CREATIVITY_MULTIPLIER, newCreativity)
+    const totalScore = newExamAbility * multiplier
 
     // 计算剩余精力
     const remainingEnergy = p.energy - (allocation.score + allocation.creativity)
@@ -136,11 +138,11 @@ function runRound(players: Player[]): Player[] {
     return {
       ...p,
       examAbilityPerRound: examAbility,
-      // 累计应试能力 = 旧 + 当轮
-      examAbility: p.examAbility + examAbility,
-      // 总分 = 旧总分 + 当轮实际分数
-      totalScore: p.totalScore + actualScore,
-      // 累计创新能力 = 旧 + 当轮
+      // 累计应试能力
+      examAbility: newExamAbility,
+      // 总分 = 累计应试能力 × 1.05 ^ 累计创新能力
+      totalScore: totalScore,
+      // 累计创新能力
       creativity: newCreativity,
       // 当轮获得的创新能力
       creativityPerRound: allocation.creativity,
