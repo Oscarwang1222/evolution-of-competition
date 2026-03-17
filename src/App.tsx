@@ -9,6 +9,7 @@ function App() {
   const [rounds, setRounds] = useState(20)
   const [initialEnergy, setInitialEnergy] = useState(10)
   const [showSim, setShowSim] = useState(false)
+  const [currentEnergy, setCurrentEnergy] = useState(initialEnergy)
   
   // 模拟状态
   const [isPlaying, setIsPlaying] = useState(false)
@@ -34,16 +35,18 @@ function App() {
     if (selectedRoles.length === 0) return
     const results = runSimulation(selectedRoles, rounds, initialEnergy)
     setHistory(results)
-    setCurrentRound(1)  // 从第1轮开始
-    setPlayers(results[0]?.players || [])  // 直接显示第1轮数据
+    setCurrentRound(1)
+    setPlayers(results[0]?.players || [])
+    setCurrentEnergy(results[0]?.energy || initialEnergy)
     setShowSim(true)
-    setIsPlaying(false) // 默认暂停
+    setIsPlaying(false)
   }
 
   // 单步运行
   const step = () => {
     if (currentRound < history.length) {
       setPlayers(history[currentRound].players)  // 显示下一轮的数据
+      setCurrentEnergy(history[currentRound].energy)
       setCurrentRound(currentRound + 1)
     }
   }
@@ -68,6 +71,7 @@ function App() {
         setCurrentRound(prev => {
           if (prev < history.length) {
             setPlayers(history[prev].players)  // 显示下一轮的数据
+            setCurrentEnergy(history[prev].energy)
             return prev + 1
           } else {
             setIsPlaying(false)
@@ -96,6 +100,7 @@ function App() {
     }
     setCurrentRound(0)
     setPlayers([])
+    setCurrentEnergy(initialEnergy)
     setShowSim(false)
   }
 
@@ -108,6 +113,7 @@ function App() {
     }
     setCurrentRound(1)
     setPlayers(history[0]?.players || [])
+    setCurrentEnergy(history[0]?.energy || initialEnergy)
   }
 
   // 获取当前排名（按总分排序）
