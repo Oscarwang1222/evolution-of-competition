@@ -43,7 +43,7 @@ function App() {
   // 单步运行
   const step = () => {
     if (currentRound < history.length) {
-      setPlayers(history[currentRound].players)
+      setPlayers(history[currentRound].players)  // 显示下一轮的数据
       setCurrentRound(currentRound + 1)
     }
   }
@@ -63,11 +63,11 @@ function App() {
 
   // 自动播放
   useEffect(() => {
-    if (isPlaying && currentRound <= history.length) {
+    if (isPlaying && currentRound < history.length) {
       timerRef.current = window.setInterval(() => {
         setCurrentRound(prev => {
-          if (prev <= history.length) {
-            setPlayers(history[prev - 1].players)
+          if (prev < history.length) {
+            setPlayers(history[prev].players)  // 显示下一轮的数据
             return prev + 1
           } else {
             setIsPlaying(false)

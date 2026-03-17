@@ -152,7 +152,7 @@ export function runSimulation(
   if (roles.length === 0) return []
 
   // 初始化玩家
-  const players: Player[] = roles.map((role, i) =>
+  let players: Player[] = roles.map((role, i) =>
     createPlayer(`player-${i}`, role, initialEnergy)
   )
 
@@ -162,10 +162,10 @@ export function runSimulation(
 
   for (let r = 1; r <= rounds; r++) {
     // 运行一轮
-    const newPlayers = runRound(players, currentEnergy)
+    players = runRound(players, currentEnergy)
 
     // 检查是否需要降低上限
-    if (isAllScoreEnergyBelow2(newPlayers, currentEnergy)) {
+    if (isAllScoreEnergyBelow2(players, currentEnergy)) {
       consecutiveBelow2++
       if (consecutiveBelow2 >= 5) {
         currentEnergy = Math.max(1, currentEnergy - 1)
@@ -177,7 +177,7 @@ export function runSimulation(
 
     results.push({
       round: r,
-      players: [...newPlayers],
+      players: players.map(p => ({ ...p })),
       energy: currentEnergy,
     })
   }
