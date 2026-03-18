@@ -34,10 +34,30 @@ function App() {
   const startSimulation = () => {
     if (selectedRoles.length === 0) return
     const results = runSimulation(selectedRoles, rounds, initialEnergy)
-    setHistory(results)
-    setCurrentRound(1)
-    setPlayers(results[0]?.players || [])
-    setCurrentEnergy(results[0]?.energy || initialEnergy)
+    
+    // 创建第0轮初始状态（所有能力为0）
+    const initialPlayers: Player[] = selectedRoles.map((role, i) => ({
+      id: `player-${i}`,
+      role,
+      totalScore: 0,
+      examAbility: 0,
+      creativity: 0,
+      examAbilityPerRound: 0,
+      creativityPerRound: 0,
+      energy: initialEnergy,
+      consecutiveBelow2: 0,
+    }))
+    
+    const initialRound: RoundResult = {
+      round: 0,
+      players: initialPlayers,
+      energy: initialEnergy,
+    }
+    
+    setHistory([initialRound, ...results])
+    setCurrentRound(0)
+    setPlayers(initialPlayers)
+    setCurrentEnergy(initialEnergy)
     setShowSim(true)
     setIsPlaying(false)
   }
@@ -223,7 +243,7 @@ function App() {
                       >
                         <span className="rank">#{i + 1}</span>
                         <span className="name">{ROLE_CONFIGS[player.role].name}</span>
-                        <span className="score" title="总分 = 应试能力 × 1.05^创新能力">
+                        <span className="score" title="总分 = 累计应试能力 + 1.05^累计创新能力">
                           <strong>总分: {player.totalScore.toFixed(2)}</strong>
                         </span>
                         <span className="total-score">
