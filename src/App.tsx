@@ -64,10 +64,11 @@ function App() {
 
   // 单步运行
   const step = () => {
-    if (currentRound < history.length) {
-      setPlayers(history[currentRound].players)  // 显示下一轮的数据
-      setCurrentEnergy(history[currentRound].energy)
-      setCurrentRound(currentRound + 1)
+    if (currentRound < history.length - 1) {
+      const next = currentRound + 1
+      setPlayers(history[next].players)
+      setCurrentEnergy(history[next].energy)
+      setCurrentRound(next)
     }
   }
 
@@ -86,13 +87,14 @@ function App() {
 
   // 自动播放
   useEffect(() => {
-    if (isPlaying && currentRound < history.length) {
+    if (isPlaying && currentRound < history.length - 1) {
       timerRef.current = window.setInterval(() => {
         setCurrentRound(prev => {
-          if (prev < history.length) {
-            setPlayers(history[prev].players)  // 显示下一轮的数据
-            setCurrentEnergy(history[prev].energy)
-            return prev + 1
+          if (prev < history.length - 1) {
+            const next = prev + 1
+            setPlayers(history[next].players)
+            setCurrentEnergy(history[next].energy)
+            return next
           } else {
             setIsPlaying(false)
             if (timerRef.current) {
@@ -131,7 +133,7 @@ function App() {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
-    setCurrentRound(1)
+    setCurrentRound(0)
     setPlayers(history[0]?.players || [])
     setCurrentEnergy(history[0]?.energy || initialEnergy)
   }
@@ -215,10 +217,10 @@ function App() {
               </div>
               
               <div className="sim-controls">
-                <button className="ctrl-btn" onClick={step} disabled={currentRound > rounds || isPlaying}>
+                <button className="ctrl-btn" onClick={step} disabled={currentRound >= history.length - 1 || isPlaying}>
                   ⏭️ 单步
                 </button>
-                <button className="ctrl-btn play-btn" onClick={togglePlay} disabled={currentRound > rounds}>
+                <button className="ctrl-btn play-btn" onClick={togglePlay} disabled={!isPlaying && currentRound >= history.length - 1}>
                   {isPlaying ? '⏸️ 暂停' : '▶️ 播放'}
                 </button>
                 <button className="ctrl-btn" onClick={restart}>
