@@ -40,18 +40,18 @@ function getFollowAllocation(
   otherScoreEnergy: number
 ): { score: number; creativity: number } {
   if (role === 'follow') {
-    // 跟风：平均值用于分数，剩余≥2用于创造力，但保证自身剩余≥2
-    const remaining = Math.max(0, n - otherScoreEnergy)
-    if (remaining >= 2) {
-      // 剩余足够：平均值给分数，剩余给创造力
-      return { score: otherScoreEnergy, creativity: remaining }
-    } else {
-      // 剩余不足2：保持2给自身，用 n-2 给分数（创造力为0）
-      return { score: n - 2, creativity: 0 }
-    }
+    // 跟风：跟随平均值用于分数，但保证自身剩余≥2
+    // 先确保剩余≥2，最多用 n-2 用于分数
+    const maxScore = n - 2
+    const score = Math.min(otherScoreEnergy, maxScore)
+    // 剩余（n-2）用于跟风创造力
+    const creativity = Math.max(0, maxScore - score)
+    return { score, creativity }
   } else {
-    // 超级跟风：平均值给分数，剩余全部给创造力（用完）
-    return { score: otherScoreEnergy, creativity: Math.max(0, n - otherScoreEnergy) }
+    // 超级跟风：用完剩余精力给创造力（不保证剩余≥2）
+    const score = Math.min(otherScoreEnergy, n)
+    const creativity = Math.max(0, n - otherScoreEnergy)
+    return { score, creativity }
   }
 }
 
