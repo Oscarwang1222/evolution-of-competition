@@ -33,8 +33,7 @@ function App() {
 
   const startSimulation = () => {
     if (selectedRoles.length === 0) return
-    const results = runSimulation(selectedRoles, rounds, initialEnergy)
-    
+
     // 创建第0轮初始状态（所有能力为0）
     const initialPlayers: Player[] = selectedRoles.map((role, i) => ({
       id: `player-${i}`,
@@ -47,13 +46,17 @@ function App() {
       energy: initialEnergy,
       consecutiveBelow2: 0,
     }))
-    
+
+    // 深拷贝初始状态，用于第0轮记录（避免被 runSimulation 修改）
     const initialRound: RoundResult = {
       round: 0,
-      players: initialPlayers,
+      players: initialPlayers.map(p => ({ ...p })),
       energy: initialEnergy,
     }
-    
+
+    // 用原始 selectedRoles 运行模拟（不会污染 initialPlayers）
+    const results = runSimulation(selectedRoles, rounds, initialEnergy)
+
     setHistory([initialRound, ...results])
     setCurrentRound(0)
     setPlayers(initialPlayers)
