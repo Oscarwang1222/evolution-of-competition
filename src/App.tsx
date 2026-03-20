@@ -16,6 +16,7 @@ function App() {
   const [currentRound, setCurrentRound] = useState(0)
   const [players, setPlayers] = useState<Player[]>([])
   const [history, setHistory] = useState<RoundResult[]>([])
+  const historyRef = useRef<RoundResult[]>([])
   const timerRef = useRef<number | null>(null)
 
   const allRoles: RoleType[] = [
@@ -58,6 +59,9 @@ function App() {
     const results = runSimulation(selectedRoles, rounds, initialEnergy)
 
     setHistory([initialRound, ...results])
+    historyRef.current = [initialRound, ...results]
+    console.log('[DEBUG start] initialRound.players[0].totalScore:', initialRound.players[0].totalScore)
+    console.log('[DEBUG start] results[0].players[0].totalScore:', results[0]?.players[0]?.totalScore)
     setCurrentRound(0)
     setPlayers(initialPlayers)
     setCurrentEnergy(initialEnergy)
@@ -67,10 +71,15 @@ function App() {
 
   // 单步运行
   const step = () => {
-    if (currentRound < history.length - 1) {
+    console.log('[DEBUG step] currentRound:', currentRound, 'history.length:', history.length)
+    console.log('[DEBUG step] history[0]:', JSON.stringify(history[0]?.players?.[0]?.totalScore))
+    console.log('[DEBUG step] history[1]:', JSON.stringify(history[1]?.players?.[0]?.totalScore))
+    if (currentRound < historyRef.current.length - 1) {
       const next = currentRound + 1
-      setPlayers(history[next].players)
-      setCurrentEnergy(history[next].energy)
+      console.log('[DEBUG step] going to next round:', next)
+      console.log('[DEBUG step] players before:', JSON.stringify(historyRef.current[next]?.players?.[0]))
+      setPlayers(historyRef.current[next].players)
+      setCurrentEnergy(historyRef.current[next].energy)
       setCurrentRound(next)
     }
   }
@@ -90,13 +99,13 @@ function App() {
 
   // 自动播放
   useEffect(() => {
-    if (isPlaying && currentRound < history.length - 1) {
+    if (isPlaying && currentRound < historyRef.current.length - 1) {
       timerRef.current = window.setInterval(() => {
         setCurrentRound(prev => {
-          if (prev < history.length - 1) {
+          if (prev < historyRef.current.length - 1) {
             const next = prev + 1
-            setPlayers(history[next].players)
-            setCurrentEnergy(history[next].energy)
+            setPlayers(historyRef.current[next].players)
+            setCurrentEnergy(historyRef.current[next].energy)
             return next
           } else {
             setIsPlaying(false)
@@ -114,7 +123,7 @@ function App() {
         clearInterval(timerRef.current)
       }
     }
-  }, [isPlaying, currentRound, history.length])
+  }, [isPlaying, currentRound])
 
   // 重置
   const reset = () => {
@@ -137,8 +146,8 @@ function App() {
       timerRef.current = null
     }
     setCurrentRound(0)
-    setPlayers(history[0]?.players || [])
-    setCurrentEnergy(history[0]?.energy || initialEnergy)
+    setPlayers(historyRef.current[0]?.players || [])
+    setCurrentEnergy(historyRef.current[0]?.energy || initialEnergy)
   }
 
   // 获取当前排名（按总分排序）
