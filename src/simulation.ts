@@ -5,6 +5,7 @@ const CREATIVITY_MULTIPLIER = 1.05
 
 // 计算某角色在指定精力上限时的分数/创造力分配
 function getAllocation(role: RoleType, n: number): { score: number; creativity: number } {
+  console.log('[getAllocation] role:', role, 'n:', n)
   switch (role) {
     case 'juanwang':
       return { score: n, creativity: 0 }
@@ -166,16 +167,20 @@ export function runSimulation(
 ): RoundResult[] {
   if (roles.length === 0) return []
 
+  console.log('[SIM] roles:', roles, 'rounds:', rounds, 'initialEnergy:', initialEnergy)
+
   // 初始化玩家
   let players: Player[] = roles.map((role, i) =>
     createPlayer(`player-${i}`, role, initialEnergy)
   )
+  console.log('[SIM] after createPlayer, players[0].energy:', players[0].energy, 'totalScore:', players[0].totalScore)
 
   const results: RoundResult[] = []
 
   for (let r = 1; r <= rounds; r++) {
     // 运行一轮
     players = runRound(players)
+    console.log('[SIM] after round', r, 'players[0].totalScore:', players[0].totalScore, 'examAbility:', players[0].examAbility)
 
     results.push({
       round: r,
