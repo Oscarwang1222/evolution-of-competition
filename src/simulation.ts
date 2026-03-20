@@ -5,7 +5,6 @@ const CREATIVITY_MULTIPLIER = 1.05
 
 // 计算某角色在指定精力上限时的分数/创造力分配
 function getAllocation(role: RoleType, n: number): { score: number; creativity: number } {
-  console.log('[getAllocation] role:', role, 'n:', n)
   switch (role) {
     case 'juanwang':
       return { score: n, creativity: 0 }
@@ -27,9 +26,7 @@ function getAllocation(role: RoleType, n: number): { score: number; creativity: 
       return { score: 1, creativity: 1 }
     case 'follow':
     case 'super-follow':
-      // 这两个需要动态计算，先返回占位
-      return { score: 0, creativity: 0 }
-    default:
+      // 这两个需要动态计算，由 getFollowAllocation 处理
       return { score: 0, creativity: 0 }
   }
 }
@@ -69,20 +66,6 @@ function createPlayer(id: string, role: RoleType, energy: number): Player {
     energy,
     consecutiveBelow2: 0,  // 连续剩余精力<2的轮数
   }
-}
-
-// 计算某玩家的剩余精力
-function getRemainingEnergy(p: Player, avgScoreEnergy: number): number {
-  const n = p.energy
-  let allocation: { score: number; creativity: number }
-  
-  if (p.role === 'follow' || p.role === 'super-follow') {
-    allocation = getFollowAllocation(p.role, n, avgScoreEnergy)
-  } else {
-    allocation = getAllocation(p.role, n)
-  }
-  
-  return n - (allocation.score + allocation.creativity)
 }
 
 // 运行一轮模拟
@@ -167,20 +150,16 @@ export function runSimulation(
 ): RoundResult[] {
   if (roles.length === 0) return []
 
-  console.log('[SIM] roles:', roles, 'rounds:', rounds, 'initialEnergy:', initialEnergy)
-
   // 初始化玩家
   let players: Player[] = roles.map((role, i) =>
     createPlayer(`player-${i}`, role, initialEnergy)
   )
-  console.log('[SIM] after createPlayer, players[0].energy:', players[0].energy, 'totalScore:', players[0].totalScore)
 
   const results: RoundResult[] = []
 
   for (let r = 1; r <= rounds; r++) {
     // 运行一轮
     players = runRound(players)
-    console.log('[SIM] after round', r, 'players[0].totalScore:', players[0].totalScore, 'examAbility:', players[0].examAbility)
 
     results.push({
       round: r,
