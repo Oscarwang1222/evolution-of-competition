@@ -1,5 +1,7 @@
 # 故事大纲：《竞争的演化》
 
+> 📄 飞书文档：https://tcntzj2zhtf5.feishu.cn/wiki/IoCPwHwJOiuEkEkHNfCcDPM5nxg
+
 > 一个类似《信任的进化》的互动叙事游戏，玩家跟随一群普通人的演化，亲历内卷的诞生、巅峰与崩溃，最终理解创造力为何是破局之道。
 
 ---
