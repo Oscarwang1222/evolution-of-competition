@@ -1,7 +1,35 @@
 import type { Player, RoleType, RoundResult } from './types'
 
-// 创造力乘数基数
-const CREATIVITY_MULTIPLIER = 1.05
+// ============================================================
+// 新版总分公式（鼓励全面发展）
+// 总分 = min(应试分, 300) × (1 + 0.3 × log(1 + 创造力/50)) + 创造力
+// 
+// 核心设计：
+// - 创造力=0时，公式退化为 min(应试分, 300)，纯卷王有合理分数
+// - 创造力>0时，系数 > 1，创造力带来乘法加成
+// - 应试 < 150 时进入"基础不牢"状态，总分严重惩罚（淘汰线）
+// ============================================================
+
+const CREATIVITY_BASE = 50          // 创造力系数分母
+const EXAM_CAP = 300                // 应试分上限（超过后边际递减）
+const EXAM_MIN_THRESHOLD = 150      // 淘汰阈值：应试 < 150 触发惩罚
+
+// 计算创造力系数（1为基础值，创造力越高乘数越大）
+function getCreativityMultiplier(creativity: number): number {
+  return 1 + 0.3 * Math.log(1 + creativity / CREATIVITY_BASE)
+}
+
+// 计算总分（新版公式）
+function calculateTotalScore(examAbility: number, creativity: number): number {
+  // 淘汰判定：应试不足时，创造力无法弥补
+  if (examAbility < EXAM_MIN_THRESHOLD) {
+    // 惩罚公式：压低总分，但不完全归零
+    return examAbility + creativity * 0.3
+  }
+  const multiplier = getCreativityMultiplier(creativity)
+  const cappedExam = Math.min(examAbility, EXAM_CAP)
+  return cappedExam * multiplier + creativity
+}
 
 // 计算某角色在指定精力上限时的分数/创造力分配
 function getAllocation(role: RoleType, n: number): { score: number; creativity: number } {
@@ -19,8 +47,11 @@ function getAllocation(role: RoleType, n: number): { score: number; creativity: 
       return { score: half, creativity: half }
     }
     case 'balanced-king': {
-      const half = Math.floor(n / 2)
-      return { score: half, creativity: half }
+      // 全面发展型：应试和创造均衡，但偏向创造（6:4）
+      const available = n - 2
+      const score = Math.floor(available * 0.4)
+      const creativity = Math.floor(available * 0.6)
+      return { score, creativity }
     }
     case 'bailan':
       return { score: 1, creativity: 1 }
@@ -101,9 +132,8 @@ function runRound(players: Player[]): Player[] {
     // 累计应试能力 = 旧 + 当轮
     const newExamAbility = p.examAbility + examAbilityThisRound
     
-    // 每一轮重新计算总分 = 累计应试能力 + 1.05 ^ 累计创新能力
-    const multiplier = Math.pow(CREATIVITY_MULTIPLIER, newCreativity)
-    const totalScore = newExamAbility + multiplier
+    // 每一轮重新计算总分（新版公式：鼓励全面发展）
+    const totalScore = calculateTotalScore(newExamAbility, newCreativity)
 
     // 计算剩余精力
     const remainingEnergy = p.energy - (allocation.score + allocation.creativity)
@@ -128,7 +158,7 @@ function runRound(players: Player[]): Player[] {
       examAbilityPerRound: examAbilityThisRound,
       // 累计应试能力 = 旧 + 当轮
       examAbility: newExamAbility,
-      // 总分 = 当轮应试能力 × 1.05 ^ 当轮创新能力
+      // 总分 = min(应试,300) × log(1+创造力/50) + 创造力
       totalScore: totalScore,
       // 累计创新能力 = 旧 + 当轮
       creativity: newCreativity,
