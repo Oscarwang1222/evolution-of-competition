@@ -1,34 +1,30 @@
 import type { Player, RoleType, RoundResult } from './types'
 
 // ============================================================
-// 新版总分公式（鼓励全面发展）
-// 总分 = min(应试分, 300) × (1 + 0.3 × log(1 + 创造力/50)) + 创造力
+// 新版总分公式（破局版本）
 // 
-// 核心设计：
-// - 创造力=0时，公式退化为 min(应试分, 300)，纯卷王有合理分数
-// - 创造力>0时，系数 > 1，创造力带来乘法加成
-// - 应试 < 150 时进入"基础不牢"状态，总分严重惩罚（淘汰线）
+// 前几章（1-4章）：只看应试分数排名
+// 第五章引入新公式：
+//   总分 = 应试基础分 + 创造力 × (系数 + 1)
+//   系数 = min(应试分 / 100, 3)
+// 
+// 关键设计：
+// - 纯卷王：应试高所以系数高，但创造力=0无法乘法加成
+// - 纯创哥：创造力高但应试太低（≈50），系数只有0.5，总分上限被锁死
+// - 均衡发展：应试≈200（系数=2）+ 创造力≈200，总分指数爆发
 // ============================================================
 
-const CREATIVITY_BASE = 50          // 创造力系数分母
-const EXAM_CAP = 300                // 应试分上限（超过后边际递减）
-const EXAM_MIN_THRESHOLD = 150      // 淘汰阈值：应试 < 150 触发惩罚
+const EXAM_COEFFICIENT = 100  // 每100分应试提升一级系数
 
-// 计算创造力系数（1为基础值，创造力越高乘数越大）
-function getCreativityMultiplier(creativity: number): number {
-  return 1 + 0.3 * Math.log(1 + creativity / CREATIVITY_BASE)
-}
-
-// 计算总分（新版公式）
+// 计算总分（新公式）
+// totalScore = examAbility + creativity × (coefficient + 1)
+// 系数 = min(exam / 100, 3)
 function calculateTotalScore(examAbility: number, creativity: number): number {
-  // 淘汰判定：应试不足时，创造力无法弥补
-  if (examAbility < EXAM_MIN_THRESHOLD) {
-    // 惩罚公式：压低总分，但不完全归零
-    return examAbility + creativity * 0.3
-  }
-  const multiplier = getCreativityMultiplier(creativity)
-  const cappedExam = Math.min(examAbility, EXAM_CAP)
-  return cappedExam * multiplier + creativity
+  const coefficient = Math.min(examAbility / EXAM_COEFFICIENT, 3)
+  // 纯卷王：exam高但creativity=0，总分=exam
+  // 纯创哥：creativity高但exam低，系数被压低，总分受限
+  // 均衡发展：exam够高+creativity积累，双重爆发
+  return examAbility + creativity * (coefficient + 1)
 }
 
 // 计算某角色在指定精力上限时的分数/创造力分配
@@ -39,7 +35,9 @@ function getAllocation(role: RoleType, n: number): { score: number; creativity: 
     case 'normal':
       return { score: Math.max(0, n - 2), creativity: 0 }
     case 'chuang-ge':
-      return { score: 1, creativity: Math.max(0, n - 3) }
+      // 纯创哥：极少应试，极少创造（只够维持生存），精力留给休息
+      // 每轮1分应试 + 2分创造 + 7分休息（不内耗）
+      return { score: 1, creativity: 2 }
     case 'top-chuang':
       return { score: 2, creativity: Math.max(0, n - 2) }
     case 'balanced': {
